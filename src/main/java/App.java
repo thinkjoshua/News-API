@@ -1,4 +1,4 @@
-mport com.google.gson.Gson;
+import com.google.gson.Gson;
 import com.google.gson.Gson;
 import dao.Sql2oDepartmentDao;
 import dao.Sql2oNewsDao;
@@ -31,141 +31,136 @@ public class App {
 //        }
 //        port(port);
 
-        get("/departments","application/json",(request, response) -> gson.toJson(departmentDao.allDepartments()));
+        get("/departments", "application/json", (request, response) -> gson.toJson(departmentDao.allDepartments()));
 
-        post("/departments/new","application/json",(request, response) -> {
-            Department department = gson.fromJson(request.body(),Department.class);
+        post("/departments/new", "application/json", (request, response) -> {
+            Department department = gson.fromJson(request.body(), Department.class);
             departmentDao.add(department);
             response.status(201);
             return gson.toJson(department);
         });
 
-        get("/departments/:departmentId/details","application/json",(request, response) -> {
+        get("/departments/:departmentId/details", "application/json", (request, response) -> {
             int departmentId = Integer.parseInt(request.params("departmentId"));
             return gson.toJson(departmentDao.findById(departmentId));
         });
 
-        post("/departments/:departmentId/users/new","application/json",(request, response) -> {
+        post("/departments/:departmentId/users/new", "application/json", (request, response) -> {
             int departmentId = Integer.parseInt(request.params("departmentId"));
             Department department = departmentDao.findById(departmentId);
 
-            if(department != null){
-                User employee = gson.fromJson(request.body(),User.class);
+            if (department != null) {
+                User employee = gson.fromJson(request.body(), User.class);
                 employee.setDepartment(department.getName());
                 userDao.add(employee);
-                departmentDao.addUserToDepartment(department,employee);
+                departmentDao.addUserToDepartment(department, employee);
                 response.status(201);
                 return gson.toJson(employee);
             } else {
-                throw new ApiException(404,"Department not found");
+                throw new ApiException(404, "Department not found");
             }
         });
 
-        get("/departments/:departmentId/users","application/json",(request, response) -> {
+        get("/departments/:departmentId/users", "application/json", (request, response) -> {
             int departmentId = Integer.parseInt(request.params("departmentId"));
             return gson.toJson(departmentDao.allDepartmentEmployees(departmentId));
         });
 
-        get("/departments/:departmentId/users/:userId/details","application/json",(request, response) -> {
+        get("/departments/:departmentId/users/:userId/details", "application/json", (request, response) -> {
             int userId = Integer.parseInt(request.params("userId"));
             User foundUser = userDao.findById(userId);
 
             if (foundUser != null) {
                 return gson.toJson(foundUser);
-            }
-            else {
+            } else {
                 return "{\"Error 404!\":\"User not found\"}";
             }
         });
 
-        get("/departments/:departmentId/users/:userId/news","application/json",(request, response) -> {
+        get("/departments/:departmentId/users/:userId/news", "application/json", (request, response) -> {
             int userId = Integer.parseInt(request.params("userId"));
             User foundUser = userDao.findById(userId);
 
             if (foundUser != null) {
                 return gson.toJson(userDao.myNews(userId));
-            }
-            else {
+            } else {
                 return "{\"Error 404!\":\"User not found\"}";
             }
         });
 
-        post("/departments/:departmentId/users/:userId/news/new","application/json",(request, response) -> {
+        post("/departments/:departmentId/users/:userId/news/new", "application/json", (request, response) -> {
             int userId = Integer.parseInt(request.params("userId"));
             int departmentId = Integer.parseInt(request.params("departmentId"));
             User foundUser = userDao.findById(userId);
             Department foundDepartment = departmentDao.findById(departmentId);
 
             if (foundUser != null && foundDepartment != null) {
-                News news = gson.fromJson(request.body(),News.class);
+                News news = gson.fromJson(request.body(), News.class);
                 news.setType(foundDepartment.getName());
                 news.setAuthor(foundUser.getName());
                 newsDao.add(news);
-                newsDao.addNewsToDepartment(departmentId,news.getId(),userId);
+                newsDao.addNewsToDepartment(departmentId, news.getId(), userId);
                 response.status(201);
                 return gson.toJson(news);
-            }
-            else {
+            } else {
                 return "{\"Error 404!\":\"User or Department not found\"}";
             }
         });
 
-        get("/departments/:departmentId/news","application/json",(request, response) -> {
+        get("/departments/:departmentId/news", "application/json", (request, response) -> {
             int departmentId = Integer.parseInt(request.params("deptId"));
             return gson.toJson(departmentDao.allDepartmentNews(departmentId));
         });
 
 
+        get("/users", "application/json", (request, response) -> gson.toJson(userDao.allUsers()));
 
-        get("/users","application/json",(request, response) -> gson.toJson(userDao.allUsers()));
-
-        get("/users/:userId/details","application/json",(request, response) -> {
+        get("/users/:userId/details", "application/json", (request, response) -> {
             int userId = Integer.parseInt(request.params("userId"));
             User foundUser = userDao.findById(userId);
             if (foundUser != null) {
                 return gson.toJson(userDao.findById(userId));
-            }
-            else {
+            } else {
                 return "{\"Error 404!\":\"User not found.\"}";
             }
         });
 
-        get("/users/:userId/news","application/json",(request, response) -> {
+        get("/users/:userId/news", "application/json", (request, response) -> {
             int userId = Integer.parseInt(request.params("userId"));
             return gson.toJson(userDao.myNews(userId));
         });
 
-        post("/users/:userId/news/new","application/json",(request, response) -> {
+        post("/users/:userId/news/new", "application/json", (request, response) -> {
             int userId = Integer.parseInt(request.params("userId"));
             User foundUser = userDao.findById(userId);
 
             if (foundUser != null) {
-                News news = gson.fromJson(request.body(),News.class);
+                News news = gson.fromJson(request.body(), News.class);
                 news.setAuthor(foundUser.getName());
                 newsDao.add(news);
-                newsDao.addNewsToDepartment(0,news.getId(),userId);
+                newsDao.addNewsToDepartment(0, news.getId(), userId);
                 response.status(201);
                 return gson.toJson(news);
-            }
-            else {
+            } else {
                 return "{\"Error 404!\":\"User not found. News cannot be posted without an actual user as the author\"}";
             }
         });
 
 
-        get("/news","application/json",(request, response) -> gson.toJson(newsDao.allNews()));
-        get("/news/general","application/json",(request, response) -> gson.toJson(newsDao.allGeneralNews()));
-        get("/news/departments","application/json",(request, response) -> gson.toJson(newsDao.allDepartmentNews()));
-        get("/news/:newsId/details","application/json",(request, response) -> {
+        get("/news", "application/json", (request, response) -> gson.toJson(newsDao.allNews()));
+        get("/news/general", "application/json", (request, response) -> gson.toJson(newsDao.allGeneralNews()));
+        get("/news/departments", "application/json", (request, response) -> gson.toJson(newsDao.allDepartmentNews()));
+        get("/news/:newsId/details", "application/json", (request, response) -> {
             int newsId = Integer.parseInt(request.params("newsId"));
             return gson.toJson(newsDao.findById(newsId));
         });
 
 
-        get("/sitemap","application/json",(request, response) ->{
+        get("/sitemap", "application/json", (request, response) -> {
             return gson.toJson(sitemapDao.allPaths());
         });
 
         //FILTERS
         after((req, res) -> res.type("application/json"));
     }
+}
